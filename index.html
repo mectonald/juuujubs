@@ -81,7 +81,11 @@ footer{text-align:center;font:11px var(--mono);letter-spacing:.14em;color:var(--
 .poll button{all:unset;cursor:pointer;border:1px solid #ddd;border-radius:8px;padding:10px;text-align:center;font-weight:700;font-size:14px;position:relative;overflow:hidden}
 .poll button span{position:relative}
 .poll button i{position:absolute;inset:0 auto 0 0;background:#8c223633;width:0;transition:width .5s}
-.tapL,.tapR{position:absolute;top:80px;bottom:0;width:35%;z-index:1}
+.story .content{pointer-events:none}.poll{pointer-events:auto}
+.navs{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:4;display:flex;justify-content:space-between;padding:0 max(18px,env(safe-area-inset-left,0px))}
+.navs button{width:54px;height:54px;border-radius:50%;border:1px solid #ffffff55;background:#00000055;color:#fff;font-size:24px;cursor:pointer;backdrop-filter:blur(6px)}
+.navs button:disabled{opacity:.25}
+.tapL,.tapR{z-index:3;position:absolute;top:80px;bottom:0;width:35%;z-index:1}
 .tapL{left:0}.tapR{right:0;width:65%}
 @media (prefers-reduced-motion:reduce){.poll button i{transition:none}}
 </style>
@@ -121,6 +125,7 @@ footer{text-align:center;font:11px var(--mono);letter-spacing:.14em;color:var(--
   <div class="top"><div class="prog" id="prog"></div><div class="who"><span id="swho">jubs.version</span><button id="close" aria-label="Fechar">×</button></div></div>
   <div class="tapL" id="tapL"></div><div class="tapR" id="tapR"></div>
   <div class="content" id="scont"></div>
+  <div class="navs"><button id="bPrev" aria-label="Story anterior">‹</button><button id="bNext" aria-label="Próximo story">›</button></div>
 </div>
 
 <script>
@@ -215,13 +220,13 @@ function show(){const h=hls[cur],s=h.s[si];document.getElementById('sbg').style.
  if(s[3]===1)c.appendChild(poll('escolhe:',['3h da manhã','também 3h da manhã']));
  if(s[3]===2)c.appendChild(poll('vota:',['13/10','13/10 também']));
  start=performance.now();cancelAnimationFrame(timer);const bar=pr.children[si].firstChild;
- const tick=t=>{const p=Math.min(1,(t-start)/DUR);bar.style.width=p*100+'%';if(p<1)timer=requestAnimationFrame(tick);else next()};bar.style.width='100%'}
+ const tick=t=>{const p=Math.min(1,(t-start)/DUR);bar.style.width=p*100+'%';if(p<1)timer=requestAnimationFrame(tick);else next()};bar.style.width='100%';document.getElementById('bPrev').disabled=(si===0&&!okH(cur-1))}
 function poll(q,opts){const d=document.createElement('div');d.className='poll';d.innerHTML=`<b></b>`;d.querySelector('b').textContent=q;opts.forEach((o,k)=>{const b=document.createElement('button');b.innerHTML='<i></i><span></span>';b.querySelector('span').textContent=o;b.onclick=ev=>{ev.stopPropagation();d.querySelectorAll('button').forEach((x,j)=>{const v=j===k?78:Math.round(22/(opts.length-1));x.querySelector('i').style.width=v+'%';x.querySelector('span').textContent=opts[j]+' · '+v+'%'})};d.appendChild(b)});d.addEventListener('click',e=>e.stopPropagation());return d}
 function okH(i){return i>=0&&i<hls.length&&(!hls[i].locked||hls[i].open)}
 function next(){if(si<hls[cur].s.length-1){si++;show()}else if(okH(cur+1)){cur++;si=0;show()}else closeStory()}
 function prev(){if(si>0){si--;show()}else if(okH(cur-1)){cur--;si=hls[cur].s.length-1;show()}}
 (()=>{let sx=null;st.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});st.addEventListener('touchend',e=>{if(sx===null)return;const d=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(d)>60){if(d<0&&okH(cur+1)){cur++;si=0;show()}else if(d>0&&okH(cur-1)){cur--;si=0;show()}}})})();
-document.getElementById('tapR').onclick=next;document.getElementById('tapL').onclick=prev;document.getElementById('close').onclick=closeStory;
+document.getElementById('tapR').onclick=next;document.getElementById('bNext').onclick=e=>{e.stopPropagation();next()};document.getElementById('bPrev').onclick=e=>{e.stopPropagation();prev()};document.getElementById('tapL').onclick=prev;document.getElementById('close').onclick=closeStory;
 document.addEventListener('keydown',e=>{if(st.hidden)return;if(e.key==='Escape')closeStory();if(e.key==='ArrowRight')next();if(e.key==='ArrowLeft')prev()});
 </script>
 </body>
